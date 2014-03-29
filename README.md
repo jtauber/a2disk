@@ -2,6 +2,7 @@ a2disk
 ======
 
 Read Apple ][ DOS 3.3 Disk Images with Python 3
+(and de-tokenize Applesoft BASIC)
 
 
 Usage
