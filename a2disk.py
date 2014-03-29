@@ -203,7 +203,16 @@ class Files:
 ## FILE HANDLERS
 
 
-class DefaultHandler:
+class TextHandler:
+
+    def __init__(self):
+        pass
+
+    def __enter__(self):
+        return self.receive_sector_data
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
 
     def receive_sector_data(self, sector_data):
         for d in sector_data:
@@ -211,6 +220,31 @@ class DefaultHandler:
                 print()
             else:
                 sys.stdout.write(chr(d & 0x7F))
+
+
+class DefaultHandler:
+
+    def __init__(self):
+        pass
+
+    def __enter__(self):
+        return self.receive_sector_data
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def receive_sector_data(self, sector_data):
+        for i in range(0x10):
+            for j in range(0x10):
+                d = sector_data[0x10 * i + j]
+                sys.stdout.write("{:02X} ".format(d))
+            for j in range(0x10):
+                d = sector_data[0x10 * i + j]
+                if 0x20 <= d & 0x7F < 0x7F:
+                    sys.stdout.write(chr(d & 0x7F))
+                else:
+                    sys.stdout.write(".")
+            sys.stdout.write("\n")
 
 
 ## COMMAND LINE FUNCTIONS
@@ -255,11 +289,16 @@ def dump(image_name, file_name):
             raise Exception("file not found")
 
         FILE_HANDLERS = {
+            0: TextHandler,
+            # 1: IntegerHandler,
+            # 2: ApplesoftHandler,
+            # 4: BinaryHandler,
         }
 
-        handler = FILE_HANDLERS.get(file_type, DefaultHandler)()
+        handler = FILE_HANDLERS.get(file_type, DefaultHandler)
 
-        files.walk_sectors(track, sector, handler.receive_sector_data)
+        with handler() as callback:
+            files.walk_sectors(track, sector, callback)
 
 
 USAGE = """
