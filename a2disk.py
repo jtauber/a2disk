@@ -41,7 +41,14 @@ class Disk(object):
     SECTOR_SIZE = 0x100
 
     def __init__(self, image_name):
-        self.disk_image = open(image_name, "rb")
+        self.image_name = image_name
+
+    def __enter__(self):
+        self.disk_image = open(self.image_name, "rb")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.disk_image.close()
 
     def seek_sect(self, track, sector):
         if track >= Disk.TRACKS_PER_DISK or sector >= Disk.SECTORS_PER_TRACK:
@@ -51,9 +58,6 @@ class Disk(object):
     def read_sect(self, track, sector):
         self.seek_sect(track, sector)
         return self.disk_image.read(Disk.SECTOR_SIZE)
-
-    def close(self):
-        self.disk_image.close()
 
 
 class VTOC(object):
@@ -200,53 +204,51 @@ class Files(object):
 
 
 def catalog(image_name):
-    disk = Disk(image_name)
-    vtoc = VTOC(disk)
 
-    print()
-    print("Disk Volume %d, Free Blocks: %d" % (vtoc.disk_volume, vtoc.free_sectors))
-    print()
+    with Disk(image_name) as disk:
+        vtoc = VTOC(disk)
 
-    catalog = Catalog(vtoc)
+        print()
+        print("Disk Volume %d, Free Blocks: %d" % (vtoc.disk_volume, vtoc.free_sectors))
+        print()
 
-    def print_entry(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
-        print(" %s%s %03u %s" % ("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name))
+        catalog = Catalog(vtoc)
 
-    catalog.walk_entries(print_entry)
-    print()
+        def print_entry(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
+            print(" %s%s %03u %s" % ("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name))
 
-    disk.close()
+        catalog.walk_entries(print_entry)
+        print()
 
 
 def dump(image_name, file_name):
-    disk = Disk(image_name)
-    files = Files(disk)
-    vtoc = VTOC(disk)
-    catalog = Catalog(vtoc)
 
-    def find_entry(find_name):
-        find_name = "%-30s" % find_name # pad with spaces for match
-        def callback(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
-            if name == find_name:
-                return ts_list_start_track, ts_list_start_sector
-        return callback
+    with Disk(image_name) as disk:
+        files = Files(disk)
+        vtoc = VTOC(disk)
+        catalog = Catalog(vtoc)
 
-    result = catalog.walk_entries(find_entry(file_name))
-    if result:
-        track, sector = result
-    else:
-        raise Exception("file not found")
+        def find_entry(find_name):
+            find_name = "%-30s" % find_name # pad with spaces for match
+            def callback(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
+                if name == find_name:
+                    return ts_list_start_track, ts_list_start_sector
+            return callback
 
-    def callback(sector_data):
-        for d in sector_data:
-            if d == 0x8D: # new line
-                print()
-            else:
-                sys.stdout.write(chr(d & 0x7F))
+        result = catalog.walk_entries(find_entry(file_name))
+        if result:
+            track, sector = result
+        else:
+            raise Exception("file not found")
 
-    files.walk_sectors(track, sector, callback)
+        def callback(sector_data):
+            for d in sector_data:
+                if d == 0x8D: # new line
+                    print()
+                else:
+                    sys.stdout.write(chr(d & 0x7F))
 
-    disk.close()
+        files.walk_sectors(track, sector, callback)
 
 
 USAGE = """
