@@ -7,14 +7,11 @@
 # USAGE:
 #   ./a2disk.py <disk image> -- display catalog
 #   ./a2disk.py <disk image> <file name> -- dump contents of file
-#
-# TODO:
-# - different handlers for different file types
-#   (including detokenizing BASIC)
-# - ability to write files
 
 
 import sys
+
+from applesoft import ApplesoftHandler
 
 
 MAX_HOPS = 560 # to prevent infinite loop caused by corrupt disk
@@ -295,7 +292,7 @@ def dump(image_name, file_name):
         FILE_HANDLERS = {
             0: TextHandler,
             # 1: IntegerHandler,
-            # 2: ApplesoftHandler,
+            2: ApplesoftHandler,
             # 4: BinaryHandler,
         }
 
