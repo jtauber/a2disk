@@ -200,6 +200,19 @@ class Files(object):
 
 
 
+## FILE HANDLERS
+
+
+class DefaultHandler:
+
+    def receive_sector_data(self, sector_data):
+        for d in sector_data:
+            if d == 0x8D: # new line
+                print()
+            else:
+                sys.stdout.write(chr(d & 0x7F))
+
+
 ## COMMAND LINE FUNCTIONS
 
 
@@ -232,23 +245,21 @@ def dump(image_name, file_name):
             find_name = "{:30s}".format(find_name) # pad with spaces for match
             def callback(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
                 if name == find_name:
-                    return ts_list_start_track, ts_list_start_sector
+                    return ts_list_start_track, ts_list_start_sector, file_type
             return callback
 
         result = catalog.walk_entries(find_entry(file_name))
         if result:
-            track, sector = result
+            track, sector, file_type = result
         else:
             raise Exception("file not found")
 
-        def callback(sector_data):
-            for d in sector_data:
-                if d == 0x8D: # new line
-                    print()
-                else:
-                    sys.stdout.write(chr(d & 0x7F))
+        FILE_HANDLERS = {
+        }
 
-        files.walk_sectors(track, sector, callback)
+        handler = FILE_HANDLERS.get(file_type, DefaultHandler)()
+
+        files.walk_sectors(track, sector, handler.receive_sector_data)
 
 
 USAGE = """
