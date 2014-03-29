@@ -1,7 +1,7 @@
 a2disk
 ======
 
-Read Apple ][ DOS 3.3 Disk Images with Python
+Read Apple ][ DOS 3.3 Disk Images with Python 3
 
 
 Usage

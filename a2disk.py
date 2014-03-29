@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Apple ][ DOS 3.3 disk image reader
-# version 0.5
+# version 0.6
 # James Tauber / jtauber.com
 #
 # USAGE:
@@ -41,7 +41,7 @@ class Disk(object):
     SECTOR_SIZE = 0x100
 
     def __init__(self, image_name):
-        self.disk_image = open(image_name)
+        self.disk_image = open(image_name, "rb")
 
     def seek_sect(self, track, sector):
         if track >= Disk.TRACKS_PER_DISK or sector >= Disk.SECTORS_PER_TRACK:
@@ -50,7 +50,7 @@ class Disk(object):
 
     def read_sect(self, track, sector):
         self.seek_sect(track, sector)
-        return [ord(x) for x in self.disk_image.read(Disk.SECTOR_SIZE)]
+        return self.disk_image.read(Disk.SECTOR_SIZE)
 
     def close(self):
         self.disk_image.close()
@@ -203,17 +203,17 @@ def catalog(image_name):
     disk = Disk(image_name)
     vtoc = VTOC(disk)
 
-    print
-    print "Disk Volume %d, Free Blocks: %d" % (vtoc.disk_volume, vtoc.free_sectors)
-    print
+    print()
+    print("Disk Volume %d, Free Blocks: %d" % (vtoc.disk_volume, vtoc.free_sectors))
+    print()
 
     catalog = Catalog(vtoc)
 
     def print_entry(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
-        print " %s%s %03u %s" % ("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name)
+        print(" %s%s %03u %s" % ("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name))
 
     catalog.walk_entries(print_entry)
-    print
+    print()
 
     disk.close()
 
@@ -240,7 +240,7 @@ def dump(image_name, file_name):
     def callback(sector_data):
         for d in sector_data:
             if d == 0x8D: # new line
-                print
+                print()
             else:
                 sys.stdout.write(chr(d & 0x7F))
 
@@ -263,4 +263,4 @@ if __name__ == "__main__":
     elif len(sys.argv) == 3:
         dump(sys.argv[1], sys.argv[2])
     else:
-        print USAGE
+        print(USAGE)
