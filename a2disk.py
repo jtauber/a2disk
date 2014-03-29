@@ -31,6 +31,20 @@ def read_word_littleendian(buff, offset):
     return buff[offset] + buff[offset + 1] * 0x100
 
 
+def hexdump(data):
+    for i in range(0x10):
+        for j in range(0x10):
+            d = data[0x10 * i + j]
+            sys.stdout.write("{:02X} ".format(d))
+        for j in range(0x10):
+            d = data[0x10 * i + j]
+            if 0x20 <= d & 0x7F < 0x7F:
+                sys.stdout.write(chr(d & 0x7F))
+            else:
+                sys.stdout.write(".")
+        sys.stdout.write("\n")
+
+
 class Disk:
     """
     an object representing a disk image with ability to read sectors
@@ -234,17 +248,7 @@ class DefaultHandler:
         pass
 
     def receive_sector_data(self, sector_data):
-        for i in range(0x10):
-            for j in range(0x10):
-                d = sector_data[0x10 * i + j]
-                sys.stdout.write("{:02X} ".format(d))
-            for j in range(0x10):
-                d = sector_data[0x10 * i + j]
-                if 0x20 <= d & 0x7F < 0x7F:
-                    sys.stdout.write(chr(d & 0x7F))
-                else:
-                    sys.stdout.write(".")
-            sys.stdout.write("\n")
+        hexdump(sector_data)
 
 
 ## COMMAND LINE FUNCTIONS
