@@ -107,7 +107,7 @@ class VTOC(object):
 
     @property
     def free_sectors(self):
-        return sum([bit_count(self.track_map(track_number)) for track_number in range(0x23)])
+        return sum([bit_count(self.track_map(track_number)) for track_number in range(Disk.TRACKS_PER_DISK)])
 
     @property
     def catalog_track_sector(self):
