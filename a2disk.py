@@ -31,7 +31,7 @@ def read_word_littleendian(buff, offset):
     return buff[offset] + buff[offset + 1] * 0x100
 
 
-class Disk(object):
+class Disk:
     """
     an object representing a disk image with ability to read sectors
     """
@@ -60,7 +60,7 @@ class Disk(object):
         return self.disk_image.read(Disk.SECTOR_SIZE)
 
 
-class VTOC(object):
+class VTOC:
     """
     knowledge of how to read the Apple ][ DOS 3.3 Volume Table of Contents.
     """
@@ -114,7 +114,7 @@ class VTOC(object):
         return self.vtoc_buffer[VTOC.CATALOG_TRACK_OFFSET], self.vtoc_buffer[VTOC.CATALOG_SECTOR_OFFSET]
 
 
-class Catalog(object):
+class Catalog:
     """
     knowledge of how to read an Apple ][ DOS 3.3 Disk Catalog.
     """
@@ -169,7 +169,7 @@ class Catalog(object):
             sector = catalog_sector[Catalog.NEXT_SECTOR_OFFSET]
 
 
-class Files(object):
+class Files:
     """
     knowledge of how to read an Apple ][ DOS 3.3 file from track/sector list.
     """
