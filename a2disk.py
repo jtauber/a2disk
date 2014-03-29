@@ -209,13 +209,13 @@ def catalog(image_name):
         vtoc = VTOC(disk)
 
         print()
-        print("Disk Volume %d, Free Blocks: %d" % (vtoc.disk_volume, vtoc.free_sectors))
+        print("Disk Volume {}, Free Blocks: {}".format(vtoc.disk_volume, vtoc.free_sectors))
         print()
 
         catalog = Catalog(vtoc)
 
         def print_entry(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
-            print(" %s%s %03u %s" % ("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name))
+            print(" {}{} {:03} {}".format("*" if locked else " ", Catalog.FILE_TYPES[file_type], size, name))
 
         catalog.walk_entries(print_entry)
         print()
@@ -229,7 +229,7 @@ def dump(image_name, file_name):
         catalog = Catalog(vtoc)
 
         def find_entry(find_name):
-            find_name = "%-30s" % find_name # pad with spaces for match
+            find_name = "{:30s}".format(find_name) # pad with spaces for match
             def callback(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
                 if name == find_name:
                     return ts_list_start_track, ts_list_start_sector
