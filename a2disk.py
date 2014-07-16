@@ -14,15 +14,17 @@ import sys
 from applesoft import ApplesoftHandler
 
 
-MAX_HOPS = 560 # to prevent infinite loop caused by corrupt disk
+MAX_HOPS = 560  # to prevent infinite loop caused by corrupt disk
 
 
 def bit_count(word):
     "counts the number of on-bits in given 16-bit word"
-    return sum([((word & (1<<j)) != 0x0) for j in range(0x10)])
+    return sum([((word & (1 << j)) != 0x0) for j in range(0x10)])
+
 
 def read_word_bigendian(buff, offset):
     return buff[offset] * 0x100 + buff[offset + 1]
+
 
 def read_word_littleendian(buff, offset):
     return buff[offset] + buff[offset + 1] * 0x100
@@ -90,12 +92,12 @@ class VTOC:
 
     # offset, value pairs for validating DOS 3.3 VTOC
     VALIDATION = [
-        (0x03, 0x03), # DOS version number
-        (0x27, 0x7A), # max number of track/sector pairs
-        (0x34, Disk.TRACKS_PER_DISK), # tracks per disk
-        (0x35, Disk.SECTORS_PER_TRACK), # sectors per track
-        (0x36, Disk.SECTOR_SIZE % 0x100), # bytes per sector (low)
-        (0x37, Disk.SECTOR_SIZE // 0x100), # bytes per sector (high)
+        (0x03, 0x03),  # DOS version number
+        (0x27, 0x7A),  # max number of track/sector pairs
+        (0x34, Disk.TRACKS_PER_DISK),  # tracks per disk
+        (0x35, Disk.SECTORS_PER_TRACK),  # sectors per track
+        (0x36, Disk.SECTOR_SIZE % 0x100),  # bytes per sector (low)
+        (0x37, Disk.SECTOR_SIZE // 0x100),  # bytes per sector (high)
     ]
 
     def __init__(self, disk):
@@ -136,7 +138,7 @@ class Catalog:
     ENTRY_OFFSET = 0x0B
     ENTRY_SIZE = 0x23
 
-    FILE_TYPES = { 0x00: "T", 0x01: "I", 0x02: "A", 0x04: "B", 0x08: "S", 0x10: "R", 0x20: "a", 0x40: "b" }
+    FILE_TYPES = {0x00: "T", 0x01: "I", 0x02: "A", 0x04: "B", 0x08: "S", 0x10: "R", 0x20: "a", 0x40: "b"}
 
     def __init__(self, vtoc):
         self.vtoc = vtoc
@@ -201,14 +203,13 @@ class Files:
             track_sector_list_sector = self.disk.read_sect(track, sector)
 
             for i in range(0x0C, 0xFF, 0x02):
-                file_track, file_sector = track_sector_list_sector[i:i+2]
+                file_track, file_sector = track_sector_list_sector[i:i + 2]
                 if file_track == 0x00 and file_sector == 0x00:
                     break
                 callback(self.disk.read_sect(file_track, file_sector))
 
             track = track_sector_list_sector[0x01]
             sector = track_sector_list_sector[0x02]
-
 
 
 ## FILE HANDLERS
@@ -227,7 +228,7 @@ class TextHandler:
 
     def receive_sector_data(self, sector_data):
         for d in sector_data:
-            if d == 0x8D: # new line
+            if d == 0x8D:  # new line
                 print()
             else:
                 sys.stdout.write(chr(d & 0x7F))
@@ -277,7 +278,8 @@ def dump(image_name, file_name):
         catalog = Catalog(vtoc)
 
         def find_entry(find_name):
-            find_name = "{:30s}".format(find_name) # pad with spaces for match
+            find_name = "{:30s}".format(find_name)  # pad with spaces for match
+
             def callback(ts_list_start_track, ts_list_start_sector, locked, file_type, size, name):
                 if name == find_name:
                     return ts_list_start_track, ts_list_start_sector, file_type

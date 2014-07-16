@@ -135,7 +135,7 @@ class Detokenize:
         length = self.read_word()
 
         while self.index < length:
-            memory = self.read_word()
+            self.read_word()
             line_number = self.read_word()
 
             sys.stdout.write("{} ".format(line_number))
